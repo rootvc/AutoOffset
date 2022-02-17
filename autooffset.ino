@@ -298,7 +298,13 @@ void checkIntervalLimit()
 		// publish total amount offset
 		char str2[16];
 		ftoa(data.tonsOffset, str2, 2);
-		Particle.publish("Total Offset", str2, PRIVATE);
+		Particle.publish("Total Tons Carbon Offset", str2, PRIVATE);
+
+		// publish total miles offset
+		char str3[16];
+		ftoa(data.intervalCounter, str3, 2);
+		Particle.publish("Total Miles Driven", str3, PRIVATE);
+
 
 		delay(300);	// don't trip the rate limiter
 
