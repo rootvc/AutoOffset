@@ -58,7 +58,7 @@ struct Data
 
 	double intervalCounter;	// The count of miles
 	double intervalLimit;	// The upper limit of miles to trigger a reminder
-	uint8_t intervalReached;	// Whether a reminder must be triggered next time the Carloop is online
+	uint8_t intervalReached;	// (this isn't used anymore) Whether a reminder must be triggered next time the Carloop is online
 	double tonsOffset;	// total tons offset
 };
 
@@ -340,8 +340,10 @@ void saveToStorage()
 	EEPROM.put(0, data);
 }
 
-// Helper functions for conversting doubles to string for publish() call
-// These are only here bc Wren API needs a "0."-prefixed double but Particle.publish() only gives strings
+/*
+/ Helper functions for converting doubles to string for publish() call
+/ These are only here bc Wren API needs a "0."-prefixed double but Particle.publish() only gives strings
+*/
 
 // Reverses a string 'str' of length 'len'
 void reverse(char *str, int len)
