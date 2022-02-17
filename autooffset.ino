@@ -1,4 +1,4 @@
-/* Carloop auto carbon offset app
+/* Automate carbon offset using Particle and OBDII
  * made by Kane
  * lol you're using my code godspeed
  *
@@ -6,6 +6,7 @@
  * When carbon offset interval is reached use wren.co to automatically purchase offsets
  * 
  * based on https://github.com/carloop/app-reminder
+ * Hardware required: Carloop Basic and Particle Photon
  */
  
 #include "application.h"
@@ -13,7 +14,7 @@
 #include <math.h>
 
 // FILL THESE OUT!
-const double mpg = 0.25;	// mpg of your vehicle; 2004 Jeep Wrangler gets 14 mpg
+const double mpg = 0.25;	// mpg of your vehicle; 2004 Jeep Wrangler gets 14 mpg; using 0.25 for testing
 const double fractionTon = 10.0;	// fraction of ton you want offsets to run, eg. 10 -> every 1/10 ton (i think the wren min)
 
 // Don't block the main program while connecting to WiFi/cellular.
@@ -276,22 +277,29 @@ double computeDeltaMileage(uint8_t newVehicleSpeedKmh)
 	return deltaMileage;
 }
 
-// If the interval limit is reached, mark it so we can publish an event
-// when we come back to network range
+// If the interval limit is reached, mark it so we can publish an event when we come back to network range
 void checkIntervalLimit()
 {
-
 	// over limit and connected
 	while ((data.intervalCounter >= data.intervalLimit) && Particle.connected())
 	{
-		// Publish the event with aggregate tons offset
+		// calculate amount to offset
+		// this should equal 1/fractionTon
 		double tcOffset = data.intervalLimit / milesPerTonCarbon;
+
+		// increment total aggregate offset
 		data.tonsOffset += tcOffset;
 
-		// convert to string bc publish() takes string
+		// publish amount to offset via wren api
 		char str[16];
 		ftoa(tcOffset, str, 2);
 		Particle.publish("Offset Carbon", str, PRIVATE);
+
+		// publish total amount offset
+		char str2[16];
+		ftoa(data.tonsOffset, str2, 2);
+		Particle.publish("Total Offset", str2, PRIVATE);
+
 		delay(300);	// don't trip the rate limiter
 
 		// decrement the counter by the limit we just offset
@@ -332,7 +340,9 @@ void saveToStorage()
 	EEPROM.put(0, data);
 }
 
-// Helpers forconversting doubles to string for publish() call
+// Helper functions for conversting doubles to string for publish() call
+// These are only here bc Wren API needs a "0."-prefixed double but Particle.publish() only gives strings
+
 // Reverses a string 'str' of length 'len'
 void reverse(char *str, int len)
 {
