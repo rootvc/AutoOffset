@@ -23,7 +23,7 @@ This app could also be implemented with [GPS](https://store.particle.io/collecti
 ```
 {"tons":{{{PARTICLE_EVENT_VALUE}}},"note":"tons carbon offset","dryRun":true}
 ```
-* Configure the MPG variable in the source code to match your cars
+* Configure the MPG variable in the source code to match your cars (line 17 in [AutoOffset.ino](https://github.com/kanetronv2/AutoOffset/blob/main/autooffset.ino))
 
 ### Executing program
 
