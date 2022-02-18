@@ -29,14 +29,15 @@ This app could also be implemented with [GPS](https://store.particle.io/collecti
 
 * With the Photon setup, install it in your [car's OBDII port](https://www.fixdapp.com/blog/where-is-my-obd2-port/#:~:text=The%20most%20common%20place%20to,passenger's%20side%20of%20the%20car.)
 * The app should run automatically and publish to the Particle Webhook when the Particle connects to internet in test mode (ie does not charge your Wren account)
-* When you are done testing, the ```dryRun``` flag in Particle Webhook body can be set to ```false``` to start buying offsets.
+* When you are done testing, the ```dryRun``` flag in Particle Webhook ```body``` can be set to ```false``` to start buying offsets
 
 ## Help
 
 Please help me refine this project. What I'd like to implement:
 
-* Deep sleep the Particle when car is off
-* Offset over cellular
+* Deep sleep the Particle when car is off in a broadly compatible way (RPM detect? CAN traffic?)
+* Fork a version to use GPS instead of OBDII
+* General code refinement
 
 ## Authors
 
