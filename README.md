@@ -1,10 +1,6 @@
 # AutoOffset
 
-Use wren.co API, Particle.io board, and Carloop OBDII adapter to automatically offset carbon emissions from compatible vehicles.
-
-## Description
-
-An in-depth paragraph about your project and overview of use.
+AutoOffset uses a [Particle Photon](https://store.particle.io/products/photon) and [Carloop OBDII](https://www.carloop.io/) adapter to automatically offset carbon emissions from vehicles using the [Wren.co](https://wren.co) API.
 
 ## Getting Started
 
@@ -13,11 +9,16 @@ An in-depth paragraph about your project and overview of use.
 * [Particle.io Photon](https://store.particle.io/products/photon)
 * [Carloop](https://www.carloop.io/) (you may have to find one used)
 * [Wren.co](https://www.wren.co/wren-api) API key
+* A vehicle with [OBDII](http://www.obdii.com/connector.html)
 
 ### Installing
 
-* How/where to download your program
-* Any modifications needed to be made to files/folders
+* [Setup](https://docs.particle.io/quickstart/photon/) the Particle Photon and flash it with AutoOffset.ino
+* Register a [Wren.co](https://www.wren.co/wren-api) API key
+* Setup a (Particle Webhook)[https://console.particle.io/] ```Offset Carbon``` to "POST" to https://www.wren.co/api/offset-orders with CUSTOM BODY
+```
+{"tons":{{{PARTICLE_EVENT_VALUE}}},"note":"total tons carbon offset","dryRun":true}
+```
 
 ### Executing program
 
