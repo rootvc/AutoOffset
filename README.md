@@ -2,7 +2,7 @@
 
 AutoOffset uses a [Particle Photon](https://store.particle.io/products/photon) and [Carloop OBDII](https://www.carloop.io/) adapter to automatically offset carbon emissions from vehicles using the [Wren.co](https://wren.co) API.
 
-This code integrates speed readouts fom [OBDII](https://x-engineer.org/on-board-diagnostics-obd-modes-operation-diagnostic-services/)—while some cars have fuel level PIDs, it is not standard across vehicles and years the way speed PIDs are and I wanted to make this as compatible with as many vehicles as possible.
+This code integrates speed readouts fom [OBDII](https://x-engineer.org/on-board-diagnostics-obd-modes-operation-diagnostic-services/). While some cars have fuel level PIDs, it is not standard across vehicles and years the way speed PIDs are and I wanted to make this as compatible with as many vehicles as possible.
 
 This app could also be implemented with [GPS](https://store.particle.io/collections/particle-tracking-system-1) and cellular instead of OBDII readouts and WiFi, but I wanted to make an app that didn't require tracking or persistent data. Let me know if you make the more sophisticated version!
 
@@ -33,35 +33,24 @@ This app could also be implemented with [GPS](https://store.particle.io/collecti
 
 ## Help
 
-Any advise for common problems or issues.
-```
-command to run if program contains helper info
-```
+Please help me refine this project. What I'd like to implement:
+
+* Deep sleep the Particle when car is off
+* Offset over cellular
 
 ## Authors
 
-Contributors names and contact info
-
-ex. Dominique Pizzie  
-ex. [@DomPizzie](https://twitter.com/dompizzie)
-
-## Version History
-
-* 0.2
-    * Various bug fixes and optimizations
-    * See [commit change]() or See [release history]()
-* 0.1
-    * Initial Release
+[@kane](https://twitter.com/kane)
 
 ## License
 
-This project is licensed under the [NAME HERE] License - see the LICENSE.md file for details
+This project is licensed under the Creative Commons Zero v1.0 Universal License - see the LICENSE.md file for details
 
 ## Acknowledgments
 
-Inspiration, code snippets, etc.
-* [awesome-readme](https://github.com/matiassingers/awesome-readme)
-* [PurpleBooth](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)
-* [dbader](https://github.com/dbader/readme-template)
-* [zenorocha](https://gist.github.com/zenorocha/4526327)
-* [fvcproductions](https://gist.github.com/fvcproductions/1bfc2d4aecb01a834b46)
+Thanks for the help:
+
+* [@jenlwei](https://twitter.com/jenlwei) - testing
+* [@bstnfld](https://twitter.com/bstnfld) - co-founder, Wren.co
+* [@mondalan](https://twitter.com/mondalan) - founder, Carloop.io
+* [@zs](https://twitter.com/zs) - co-founder, Particle.io
