@@ -2,7 +2,7 @@
 
 AutoOffset uses a [Particle Photon](https://store.particle.io/products/photon) and [Carloop OBDII](https://www.carloop.io/) adapter to automatically offset carbon emissions from vehicles using the [Wren.co](https://wren.co) API.
 
-This code integrates speed readouts fom [OBDII](https://x-engineer.org/on-board-diagnostics-obd-modes-operation-diagnostic-services/). While some cars have fuel level PIDs, it is not standard across vehicles and years the way speed PIDs are and I wanted to make this as compatible with as many vehicles as possible.
+This code integrates speed readouts fom [OBDII](https://x-engineer.org/on-board-diagnostics-obd-modes-operation-diagnostic-services/) to calculate distance and emissions. While some cars have fuel level PIDs, it is not standard across vehicles and years the way speed PIDs are and I wanted to make this as compatible with as many vehicles as possible.
 
 This app could also be implemented with [GPS](https://store.particle.io/collections/particle-tracking-system-1) and cellular instead of OBDII readouts and WiFi, but I wanted to make an app that didn't require tracking or persistent data. Let me know if you make the more sophisticated version!
 
