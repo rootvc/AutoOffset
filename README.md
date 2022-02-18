@@ -17,7 +17,7 @@ This app could also be implemented with [GPS](https://store.particle.io/collecti
 
 ### Installing
 
-* [Setup](https://docs.particle.io/quickstart/photon/) the Particle Photon and flash it with [AutoOffset.ino](https://github.com/kanetronv2/AutoOffset/blob/main/autooffset.ino). Be sure to include the Carloop library using the Particle Web IDE or [directly](https://github.com/carloop/carloop-library).
+* [Setup](https://docs.particle.io/quickstart/photon/) the Particle Photon and flash it with [AutoOffset.ino](https://github.com/kanetronv2/AutoOffset/blob/main/autooffset.ino). Be sure to include the [Carloop library](https://github.com/carloop/carloop-library) using the [Particle Web IDE](https://build.particle.io/build) or directly download it.
 * Register a [Wren.co](https://www.wren.co/wren-api) API key
 * Setup a [Particle Webhook](https://console.particle.io/) titled ```Offset Carbon``` to ```POST``` to https://www.wren.co/api/offset-orders with your Wren API key in the headers and ```CUSTOM BODY``` set to:
 ```
