@@ -294,19 +294,19 @@ void checkIntervalLimit()
 		char str[16];
 		ftoa(tcOffset, str, 2);
 		Particle.publish("Offset Carbon", str, PRIVATE);
+		delay(1000);	// don't trip the rate limiter
 
 		// publish total amount offset
 		char str2[16];
 		ftoa(data.tonsOffset, str2, 2);
 		Particle.publish("Total Tons Carbon Offset", str2, PRIVATE);
+		delay(1000);	// don't trip the rate limiter
 
 		// publish total miles offset
 		char str3[16];
 		ftoa(data.intervalCounter, str3, 2);
 		Particle.publish("Total Miles Driven", str3, PRIVATE);
-
-
-		delay(300);	// don't trip the rate limiter
+		delay(1000);	// don't trip the rate limiter
 
 		// decrement the counter by the limit we just offset
 		data.intervalCounter -= data.intervalLimit;
