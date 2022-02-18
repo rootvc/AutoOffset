@@ -15,7 +15,7 @@ AutoOffset uses a [Particle Photon](https://store.particle.io/products/photon) a
 
 * [Setup](https://docs.particle.io/quickstart/photon/) the Particle Photon and flash it with AutoOffset.ino
 * Register a [Wren.co](https://www.wren.co/wren-api) API key
-* Setup a (Particle Webhook)[https://console.particle.io/] ```Offset Carbon``` to "POST" to https://www.wren.co/api/offset-orders with CUSTOM BODY
+* Setup a [Particle Webhook](https://console.particle.io/) ```Offset Carbon``` to ```POST``` to https://www.wren.co/api/offset-orders with ```CUSTOM BODY```
 ```
 {"tons":{{{PARTICLE_EVENT_VALUE}}},"note":"total tons carbon offset","dryRun":true}
 ```
