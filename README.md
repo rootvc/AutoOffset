@@ -13,20 +13,19 @@ AutoOffset uses a [Particle Photon](https://store.particle.io/products/photon) a
 
 ### Installing
 
-* [Setup](https://docs.particle.io/quickstart/photon/) the Particle Photon and flash it with AutoOffset.ino
+* [Setup](https://docs.particle.io/quickstart/photon/) the Particle Photon and flash it with AutoOffset.ino. Be sure to include the Carloop library using the Particle Web IDE or [directly](https://github.com/carloop/carloop-library).
 * Register a [Wren.co](https://www.wren.co/wren-api) API key
-* Setup a [Particle Webhook](https://console.particle.io/) ```Offset Carbon``` to ```POST``` to https://www.wren.co/api/offset-orders with ```CUSTOM BODY```
+* Setup a [Particle Webhook] titled (https://console.particle.io/) ```Offset Carbon``` to ```POST``` to https://www.wren.co/api/offset-orders with your Wren API key in the headers and ```CUSTOM BODY``` set to:
 ```
-{"tons":{{{PARTICLE_EVENT_VALUE}}},"note":"total tons carbon offset","dryRun":true}
+{"tons":{{{PARTICLE_EVENT_VALUE}}},"note":"tons carbon offset","dryRun":true}
 ```
+* Configure the MPG variable in the source code to match your cars
 
 ### Executing program
 
-* How to run the program
-* Step-by-step bullets
-```
-code blocks for commands
-```
+* With the Photon setup, install it in your [car's OBDII port](https://www.fixdapp.com/blog/where-is-my-obd2-port/#:~:text=The%20most%20common%20place%20to,passenger's%20side%20of%20the%20car.)
+* The app should run automatically and publish to the Particle Webhook when the Particle connects to internet in test mode (ie does not charge your Wren account)
+* When you are done testing, the ```dryRun``` flag in Particle Webhook body can be set to ```false``` to start buying offsets.
 
 ## Help
 
