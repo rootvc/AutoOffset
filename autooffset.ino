@@ -171,6 +171,7 @@ int changeIntervalLimit(String arg)
 // the mileage and update the interval counter
 void loop()
 {
+	carloop.update();
 	updateSpeed();
 	storeMileage();
 	// test();
@@ -186,14 +187,19 @@ void test()
 	char str[16];
 	ftoa(data.intervalLimit / milesPerTonCarbon, str, 2);
 
-	Particle.publish("TEST Offset Carbon", str, PRIVATE);
+	Particle.publish("TEST", str, PRIVATE);
 	delay(2000);
 }
 
 // checks if engine is running, sleeps photon if not
 void checkEngineRunning()
 {
-	// need to implement
+	// if battery voltage is below 13V car is off, sleep for 30s to save battery
+	// https://www.kevinsidwar.com/iot/2017/12/15/demystifying-sleep-on-the-particle-photon
+	if (carloop.battery() < 13.0) {
+		Particle.publish("STATUS", "Sleeping");
+		System.sleep(D0, RISING, 30); // sleep for 30 seconds
+	}
 }
 
 // Request the vehicle speed through OBD and wait for the response
