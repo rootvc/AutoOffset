@@ -38,6 +38,7 @@ void storeMileage();
 void loadFromStorage();
 void saveToStorage();
 void test();
+void checkEngineRunning();
 
 // helpers for converting doubles to strings
 void ftoa(float n, char *res, int afterpoint);
@@ -174,9 +175,11 @@ void loop()
 	storeMileage();
 	// test();
 	checkIntervalLimit();
+	checkEngineRunning();
 	delay(100);
 }
 
+// test function
 void test()
 {
 	// convert to string bc publish() takes string
@@ -185,6 +188,12 @@ void test()
 
 	Particle.publish("TEST Offset Carbon", str, PRIVATE);
 	delay(2000);
+}
+
+// checks if engine is running, sleeps photon if not
+void checkEngineRunning()
+{
+	// need to implement
 }
 
 // Request the vehicle speed through OBD and wait for the response
@@ -294,7 +303,7 @@ void checkIntervalLimit()
 		char str[16];
 		ftoa(tcOffset, str, 2);
 		Particle.publish("Offset Carbon", str, PRIVATE);
-		delay(2000);	// don't trip the rate limiter
+		delay(1500);	// don't trip the rate limiter
 
 		/* publish total amount offset
 		char str2[16];
