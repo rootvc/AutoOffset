@@ -13,7 +13,7 @@
 #include "carloop/carloop.h"
 #include <math.h>
 
-// FILL THESE OUT!
+// TODO: FILL THESE OUT!
 const double mpg = 0.25;	// mpg of your vehicle; 2004 Jeep Wrangler gets 14 mpg; using 0.25 for testing
 const double fractionTon = 10.0;	// fraction of ton you want offsets to run, eg. 10 -> every 1/10 ton (i think the wren min)
 
