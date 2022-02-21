@@ -16,6 +16,7 @@
 // FILL THESE OUT!
 const double mpg = 0.25;	// mpg of your vehicle; 2004 Jeep Wrangler gets 14 mpg; using 0.25 for testing
 const double fractionTon = 10.0;	// fraction of ton you want offsets to run, eg. 10 -> every 1/10 ton (i think the wren min)
+const double engineOnVoltage = 12.75; // voltage above which indicates engine is running
 
 // Don't block the main program while connecting to WiFi/cellular.
 // This way the main program runs on the Carloop even outside of WiFi range.
@@ -91,6 +92,9 @@ Data data;
 // Only store to EEPROM every so often
 const auto STORAGE_PERIOD = 60 * 1000; /*every minute */
 uint32_t lastStorageTime = 0;
+
+// USB power voltage for debug
+const double usbPowerVoltage = 5.0;
 
 // OBD constants for CAN
 // reference: https://x-engineer.org/on-board-diagnostics-obd-modes-operation-diagnostic-services/
@@ -172,6 +176,7 @@ int changeIntervalLimit(String arg)
 void loop()
 {
 	carloop.update();
+	
 	updateSpeed();
 	storeMileage();
 	// test();
@@ -194,11 +199,13 @@ void test()
 // checks if engine is running, sleeps photon if not
 void checkEngineRunning()
 {
-	// if battery voltage is below 13V car is off, sleep for 30s to save battery
-	// https://www.kevinsidwar.com/iot/2017/12/15/demystifying-sleep-on-the-particle-photon
-	if (carloop.battery() < 13.0) {
+    double batteryVoltage = carloop.battery();
+    
+	// if battery voltage is below 12.75V car is off, sleep for 30s to save battery
+	// if it's below usbPowerVoltage limit, assume it's plugged into USB for diagnostics and don't sleep
+	if (batteryVoltage < engineOnVoltage && batteryVoltage > usbPowerVoltage) {
 		Particle.publish("STATUS", "Sleeping");
-		System.sleep(D0, RISING, 30); // sleep for 30 seconds
+		System.sleep(D1, RISING, 30); // sleep for 30 seconds
 	}
 }
 
