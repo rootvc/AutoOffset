@@ -3,12 +3,12 @@
  * lol you're using my code godspeed
  *
  * Accumulates miles in a counter stored in EEPROM.
- * When carbon offset interval is reached use wren.co to automatically purchase offsets
+ * When carbon offset interval is reached, use wren.co to automatically purchase offsets.
  * 
- * based on https://github.com/carloop/app-reminder
+ * Based on https://github.com/carloop/app-reminder
  * Hardware required: Carloop Basic and Particle Photon
  */
- 
+
 #include "application.h"
 #include "carloop/carloop.h"
 #include <math.h>
@@ -39,17 +39,17 @@ void loadFromStorage();
 void saveToStorage();
 void test();
 
-// helpers for converting doubles to strings
+// Helpers for converting doubles to strings
 void ftoa(float n, char *res, int afterpoint);
 int intToStr(int x, char str[], int d);
 void reverse(char *str, int len);
 
 // Structures
 
-/*This struct must not be re-ordered since it is the EEPROM layout.
- *Elements must not be deleted.
- *To remove an element, replace the name by _unused1/2/3.
- *Elements must only be added at the end.
+/*
+ * This struct must not be re-ordered since it is the EEPROM layout.
+ * Elements must not be deleted.
+ * To remove an element, replace the name with _unused1/2/3.
  */
 struct Data
 {
@@ -64,13 +64,13 @@ struct Data
 
 // 100 gallons = 1 ton CO2
 // https://www.epa.gov/energy/greenhouse-gases-equivalencies-calculator-calculations-and-references
-
 const double gallonsPerTonCarbon = 100.0;	// gallons per ton of carbon
 const double milesPerTonCarbon = gallonsPerTonCarbon * mpg;	// miles per fractional ton carbon
 const double milesPerFractionTonCarbon = milesPerTonCarbon / fractionTon;
 
 // The default values for the EEPROM on first run
-const Data DEFAULT_DATA = { /*appId */
+const Data DEFAULT_DATA = {
+	/*appId */
 	0x4352,	// Letters CR = Carloop Reminder
 	/*version */
 	1,
@@ -112,8 +112,10 @@ int obdResponseCount = 0;
 uint8_t vehicleSpeedKmh = 0;
 uint32_t lastVehicleSpeedUpdateTime = 0;
 
-// Called at boot
-// Sets up the CAN bus and cloud functions
+/*
+ * Called at boot
+ * Sets up the CAN bus and cloud functions
+ */
 void setup()
 {
 	setupCloud();
@@ -132,7 +134,9 @@ void setup()
 	carloop.begin();
 }
 
-// Allow interacting with the Carloop remotely
+/*
+ * Allow interacting with the Carloop remotely
+ */
 void setupCloud()
 {
 	Particle.function("reset", resetIntervalCounter);
@@ -141,7 +145,9 @@ void setupCloud()
 	Particle.variable("msg", obdResponseCount);
 }
 
-// Reset the interval counter and store the zero value in EEPROM
+/*
+ * Reset the interval counter and store the zero value in EEPROM
+ */
 int resetIntervalCounter(String = String())
 {
 	data.intervalCounter = 0;
@@ -149,8 +155,10 @@ int resetIntervalCounter(String = String())
 	return 0;
 }
 
-// Set the interval upper limit and make sure the current value is below
-// that. Store the values value in EEPROM
+/*
+ * Set the interval upper limit and make sure the current value is below
+ * that. Store the values value in EEPROM
+ */	
 int changeIntervalLimit(String arg)
 {
 	long newLimit = arg.toInt();
@@ -165,9 +173,12 @@ int changeIntervalLimit(String arg)
 	return 0;
 }
 
-// Called over and over
-// Process new CAN messages here to update the vehicle speed, update
-// the mileage and update the interval counter
+/*
+ * Called over and over
+ *
+ * Process new CAN messages here to update the vehicle speed, update
+ * the mileage and update the interval counter
+ */
 void loop()
 {
 	updateSpeed();
@@ -187,14 +198,18 @@ void test()
 	delay(2000);
 }
 
-// Request the vehicle speed through OBD and wait for the response
+/*
+ * Request the vehicle speed through OBD and wait for the response
+ */
 void updateSpeed()
 {
 	requestVehicleSpeed();
 	waitForVehicleSpeedResponse();
 }
 
-// Send a PID request for the vehicle speed
+/*
+ * Send a PID request for the vehicle speed
+ */
 void requestVehicleSpeed()
 {
 	CANMessage message;
@@ -212,11 +227,14 @@ void requestVehicleSpeed()
 	carloop.can().transmit(message);
 }
 
-// Wait for the PID response with a timeout
+/*
+ * Wait for the PID response with a timeout and update mileage to new
+ * value if response received — otherwise, update mileage to zero
+ */
 void waitForVehicleSpeedResponse()
 {
 	uint32_t start = millis();
-	while (millis() - start < OBD_TIMEOUT_MS)
+	while ((millis() - start) < OBD_TIMEOUT_MS)
 	{
 		CANMessage message;
 		if (carloop.can().receive(message))
@@ -232,27 +250,34 @@ void waitForVehicleSpeedResponse()
 		}
 	}
 
-	// A timeout occured
+	// A timeout occurred
 	updateMileage(0);
 }
 
-// Update the interval counter based on the new speed and check if the
-// limit was reached
+/*
+ * Update the interval counter based on the new speed and check if the
+ * interval limit has been reached
+ */
 void updateMileage(uint8_t newVehicleSpeedKmh)
 {
 	double deltaMileage = computeDeltaMileage(newVehicleSpeedKmh);
-
 	data.intervalCounter += deltaMileage;
+	// TODO-dev [2022-02-21] Does this need to be saved to storage?
 }
 
-// Calculate the increase in mileage given the old and new speed
+/*
+ * Calculate the increase in mileage given the old and new speed
+ */
 double computeDeltaMileage(uint8_t newVehicleSpeedKmh)
 {
 	uint32_t now = millis();
 	double deltaMileage = 0.0;
+	int PLAUSIBLE_DIFF_MS = 1000;
+	// TODO-dev: [2022-02-21] How was this determined?
 
 	// If the speed was previously 0 or newly 0, or timed out because the
 	// car was off, just save the new speed value
+	// TODO-dev: [2022-02-21] Is the comment above still correct?
 	if (vehicleSpeedKmh > 0 && newVehicleSpeedKmh > 0)
 	{
 		// The car was previously driving and is still driving
@@ -260,26 +285,35 @@ double computeDeltaMileage(uint8_t newVehicleSpeedKmh)
 		// Figure out the distance driven using the trapezoidal rule
 		uint32_t msDiff = now - lastVehicleSpeedUpdateTime;
 		// Calculate only if the difference is plausible
-		if (msDiff < 1000)
+		if (msDiff < PLAUSIBLE_DIFF_MS)
 		{
-			// distance in km/h *ms
-			uint32_t deltaDistance = msDiff *(vehicleSpeedKmh + newVehicleSpeedKmh) / 2;
+			// distance in km/h * ms
+			uint32_t deltaDistance = msDiff * (vehicleSpeedKmh + newVehicleSpeedKmh) / 2;
 
 			// Convert to miles
-			// 1 kilometer per hour *ms = 1.72603109 × 10^-7 miles
-			// km/h *ms *(1 h / 3600 s) *(0.621371 mi / 1 km) *(1 s / 1000 ms)
-			deltaMileage = deltaDistance *1.72603109e-7;
+			// (1 kilometer per hour * ms) * 1.72603109 × 10^-7  = miles
+			// (km/h * ms) *(1 h / 3600 s) * (0.621371 mi / 1 km) * (1 s / 1000 ms)
+			deltaMileage = deltaDistance * 1.72603109e-7;
 		}
 	}
 
+	// Update logged speed and time with latest values
 	vehicleSpeedKmh = newVehicleSpeedKmh;
 	lastVehicleSpeedUpdateTime = now;
 	return deltaMileage;
 }
 
-// If the interval limit is reached, mark it so we can publish an event when we come back to network range
+/*
+ * If the interval limit is reached, mark it so we can publish an event
+ * when we come back to network range
+ * TODO-dev: [2022-02-21] Is this description correct? Seems like data
+ *     will only be updated if the limit is reached AND we're connected,
+ *     and this function won't do anything otherwise? Could probably benefit
+ *     from a rename if so since it's doing more than just checking.
+ */
 void checkIntervalLimit()
 {
+	int RATE_LIMIT_DELAY_MS = 1000;
 	// over limit and connected
 	while ((data.intervalCounter >= data.intervalLimit) && Particle.connected())
 	{
@@ -294,19 +328,19 @@ void checkIntervalLimit()
 		char str[16];
 		ftoa(tcOffset, str, 2);
 		Particle.publish("Offset Carbon", str, PRIVATE);
-		delay(1000);	// don't trip the rate limiter
+		delay(RATE_LIMIT_DELAY_MS);	// don't trip the rate limiter
 
 		// publish total amount offset
 		char str2[16];
 		ftoa(data.tonsOffset, str2, 2);
 		Particle.publish("Total Tons Carbon Offset", str2, PRIVATE);
-		delay(1000);	// don't trip the rate limiter
+		delay(RATE_LIMIT_DELAY_MS);	// don't trip the rate limiter
 
 		// publish total miles offset
 		char str3[16];
 		ftoa(data.intervalCounter, str3, 2);
 		Particle.publish("Total Miles Driven", str3, PRIVATE);
-		delay(1000);	// don't trip the rate limiter
+		delay(RATE_LIMIT_DELAY_MS);	// don't trip the rate limiter
 
 		// decrement the counter by the limit we just offset
 		data.intervalCounter -= data.intervalLimit;
@@ -317,17 +351,22 @@ void checkIntervalLimit()
 	// otherwise just keep counting until you get to internet
 }
 
-// Store data to EEPROM every so often
+/*
+ * Store data to EEPROM every STORAGE_PERIOD_MS ms and
+ * update lastStorageTime
+ */
 void storeMileage()
 {
-	if (millis() - lastStorageTime > STORAGE_PERIOD)
+	if (millis() - lastStorageTime > STORAGE_PERIOD_MS)
 	{
 		saveToStorage();
 		lastStorageTime = millis();
 	}
 }
 
-// Load the data structure to EEPROM permanent storage
+/*
+ * Load the data structure to EEPROM permanent storage
+ */
 void loadFromStorage()
 {
 	EEPROM.get(0, data);
@@ -340,18 +379,23 @@ void loadFromStorage()
 	}
 }
 
-// Save the data structure to EEPROM permanent storage
+/*
+ * Save the data structure to EEPROM permanent storage
+ */
 void saveToStorage()
 {
 	EEPROM.put(0, data);
 }
 
 /*
-/ Helper functions for converting doubles to string for publish() call
-/ These are only here bc Wren API needs a "0."-prefixed double but Particle.publish() only gives strings
+ * Helper functions for converting doubles to string for publish() call
+ * These are only here bc Wren API needs a "0."-prefixed double,
+ * but Particle.publish() only gives strings
 */
 
-// Reverses a string 'str' of length 'len'
+/*
+ * Reverses a string 'str' of length 'len'
+ */
 void reverse(char *str, int len)
 {
 	int i = 0, j = len - 1, temp;
@@ -365,33 +409,39 @@ void reverse(char *str, int len)
 	}
 }
 
-// Converts a given integer x to string str[]. 
-// d is the number of digits required in the output. 
-// If d is more than the number of digits in x, 
-// then 0s are added at the beginning.
+/*
+ * Converts a given integer x to string str[]. 
+ * d is the number of digits required in the output. 
+ * If d is more than the number of digits in x, 
+ * then 0s are added at the beginning.
+ */
 int intToStr(int x, char str[], int d)
 {
 	int i = 0;
 
 	if (!x)
-		str[i++] = '0';	// if the int part is 0, make it explicit for wren api
+		str[i++] = '0';	// If the int part is 0, make it explicit for Wren API
+
 	while (x)
 	{
 		str[i++] = (x % 10) + '0';
 		x = x / 10;
 	}
 
-	// If number of digits required is more, then
-	// add 0s at the beginning
+	// If number of digits required is more, then add 0s at the beginning
 	while (i < d)
+	{
 		str[i++] = '0';
+	}
 
 	reverse(str, i);
 	str[i] = '\0';
 	return i;
 }
 
-// Converts a floating-point/double number to a string.
+/*
+ * Converts a floating-point/double number to a string.
+ */
 void ftoa(float n, char *res, int afterpoint)
 {
 	// Extract integer part
@@ -400,10 +450,10 @@ void ftoa(float n, char *res, int afterpoint)
 	// Extract floating part
 	float fpart = n - (float) ipart;
 
-	// convert integer part to string
+	// Convert integer part to string
 	int i = intToStr(ipart, res, 0);
 
-	// check for display option after point
+	// Check for display option after point
 	if (afterpoint != 0)
 	{
 		res[i] = '.';	// add dot
@@ -411,7 +461,7 @@ void ftoa(float n, char *res, int afterpoint)
 		// Get the value of fraction part upto given no.
 		// of points after dot. The third parameter 
 		// is needed to handle cases like 233.007
-		fpart = fpart* pow(10, afterpoint);
+		fpart = fpart * pow(10, afterpoint);
 
 		intToStr((int) fpart, res + i + 1, afterpoint);
 	}
