@@ -50,6 +50,9 @@ void reverse(char *str, int len);
  * This struct must not be re-ordered since it is the EEPROM layout.
  * Elements must not be deleted.
  * To remove an element, replace the name with _unused1/2/3.
+ * - e.g. intervalReached --> _unused1
+ * Elements must only be added at the end, and when elements are added,
+ * version should be incremented.
  */
 struct Data
 {
@@ -107,6 +110,7 @@ const auto OBD_PID_VEHICLE_SPEED = 0x0d;
 // Time to wait for a reply for an OBD request
 const auto OBD_TIMEOUT_MS = 20;
 
+// Track # of responses received
 int obdResponseCount = 0;
 
 uint8_t vehicleSpeedKmh = 0;
@@ -183,11 +187,15 @@ void loop()
 {
 	updateSpeed();
 	storeMileage();
+	// Uncomment below when testing
 	// test();
 	checkIntervalLimit();
 	delay(100);
 }
 
+/*
+ * Publish offset carbon as private event for testing purposes
+ */
 void test()
 {
 	// convert to string bc publish() takes string
