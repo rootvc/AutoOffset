@@ -4,7 +4,7 @@
  *
  * Accumulates miles in a counter stored in EEPROM.
  * When carbon offset interval is reached, use wren.co to automatically purchase offsets.
- * 
+ *
  * Based on https://github.com/carloop/app-reminder
  * Hardware required: Carloop Basic and Particle Photon
  */
@@ -14,8 +14,9 @@
 #include <math.h>
 
 // TODO: FILL THESE OUT!
-const double mpg = 0.25;	// mpg of your vehicle; 2004 Jeep Wrangler gets 14 mpg; using 0.25 for testing
-const double fractionTon = 10.0;	// fraction of ton you want offsets to run, eg. 10 -> every 1/10 ton (i think the wren min)
+const double mpg = 0.25;							// mpg of your vehicle; 2004 Jeep Wrangler gets 14 mpg; using 0.25 for testing
+const double fractionTon = 10.0;			// fraction of ton you want offsets to run, eg. 10 -> every 1/10 ton (i think the wren min)
+const double engineOnVoltage = 12.75; // voltage above which indicates engine is running
 
 // Don't block the main program while connecting to WiFi/cellular.
 // This way the main program runs on the Carloop even outside of WiFi range.
@@ -38,6 +39,7 @@ void storeMileage();
 void loadFromStorage();
 void saveToStorage();
 void test();
+void checkEngineRunning();
 
 // Helpers for converting doubles to strings
 void ftoa(float n, char *res, int afterpoint);
@@ -57,37 +59,37 @@ void reverse(char *str, int len);
  */
 struct Data
 {
-	uint16_t appId;	// Used to make sure the EEPROM was properly initialized for this app
-	uint16_t version;	// Increment in case more fields are added in a later version
+	uint16_t appId;		// Used to make sure the EEPROM was properly initialized for this app
+	uint16_t version; // Increment in case more fields are added in a later version
 
-	double intervalCounter;	// The count of miles
+	double intervalCounter; // The count of miles
 	// TODO-dev: [2022-02-21] Wonder if it'd be more self-descriptive if we called this milesCount?
-	double intervalLimit;	// The upper limit of miles to trigger a reminder
+	double intervalLimit; // The upper limit of miles to trigger a reminder
 	// TODO-dev: [2022-02-21] Wonder if it'd be more self-descriptive if we called this milesThreshold?
-	uint8_t intervalReached;	// (this isn't used anymore) Whether a reminder must be triggered next time the Carloop is online
-	double tonsOffset;	// total tons offset
+	uint8_t intervalReached; // (this isn't used anymore) Whether a reminder must be triggered next time the Carloop is online
+	double tonsOffset;			 // total tons offset
 };
 
 // 100 gallons = 1 ton CO2
 // https://www.epa.gov/energy/greenhouse-gases-equivalencies-calculator-calculations-and-references
-const double gallonsPerTonCarbon = 100.0;	// gallons per ton of carbon
-const double milesPerTonCarbon = gallonsPerTonCarbon * mpg;	// miles per fractional ton carbon
+const double gallonsPerTonCarbon = 100.0;										// gallons per ton of carbon
+const double milesPerTonCarbon = gallonsPerTonCarbon * mpg; // miles per fractional ton carbon
 const double milesPerFractionTonCarbon = milesPerTonCarbon / fractionTon;
 
 // The default values for the EEPROM on first run
 const Data DEFAULT_DATA = {
-	/*appId */
-	0x4352,	// Letters CR = Carloop Reminder
-	/*version */
-	1,
-	/*intervalCounter */
-	0.0,
-	/*intervalLimit */
-	0.0,
-	/*intervalReached */
-	0,
-	/*tonsOffset */
-	0.0,
+		/*appId */
+		0x4352, // Letters CR = Carloop Reminder
+		/*version */
+		1,
+		/*intervalCounter */
+		0.0,
+		/*intervalLimit */
+		0.0,
+		/*intervalReached */
+		0,
+		/*tonsOffset */
+		0.0,
 };
 
 // The data that is stored and loaded in permanent storage (EEPROM)
@@ -96,6 +98,9 @@ Data data;
 // Only store to EEPROM every so often
 const auto STORAGE_PERIOD_MS = 60 * 1000; /* every minute */
 uint32_t lastStorageTime = 0;
+
+// USB power voltage for debug
+const double usbPowerVoltage = 5.0;
 
 // OBD constants for CAN
 // reference: https://x-engineer.org/on-board-diagnostics-obd-modes-operation-diagnostic-services/
@@ -167,7 +172,7 @@ int resetIntervalCounter(String = String())
 /*
  * Set the interval upper limit and make sure the current value is below
  * that. Store the values value in EEPROM
- */	
+ */
 int changeIntervalLimit(String arg)
 {
 	long newLimit = arg.toInt();
@@ -190,11 +195,14 @@ int changeIntervalLimit(String arg)
  */
 void loop()
 {
+	carloop.update();
+
 	updateSpeed();
 	storeMileage();
 	// Uncomment below when testing
 	// test();
 	checkIntervalLimit();
+	checkEngineRunning();
 	delay(100);
 }
 
@@ -207,8 +215,24 @@ void test()
 	char str[16];
 	ftoa(data.intervalLimit / milesPerTonCarbon, str, 2);
 
-	Particle.publish("TEST Offset Carbon", str, PRIVATE);
+	Particle.publish("TEST", str, PRIVATE);
 	delay(2000);
+}
+
+/*
+ * Checks if engine is running, sleeps photon if not
+ */
+void checkEngineRunning()
+{
+	double batteryVoltage = carloop.battery();
+
+	// if battery voltage is below 12.75V car is off, sleep for 30s to save battery
+	// if it's below usbPowerVoltage limit, assume it's plugged into USB for diagnostics and don't sleep
+	if (batteryVoltage < engineOnVoltage && batteryVoltage > usbPowerVoltage)
+	{
+		Particle.publish("STATUS", "Sleeping");
+		System.sleep(D1, RISING, 30); // sleep for 30 seconds
+	}
 }
 
 /*
@@ -232,7 +256,7 @@ void requestVehicleSpeed()
 	message.len = 8;
 
 	// Data is an OBD request: get current value of the vehicle speed PID
-	message.data[0] = 2;	// 2 byte request
+	message.data[0] = 2; // 2 byte request
 	message.data[1] = OBD_MODE_CURRENT_DATA;
 	message.data[2] = OBD_PID_VEHICLE_SPEED;
 
@@ -253,7 +277,7 @@ void waitForVehicleSpeedResponse()
 		if (carloop.can().receive(message))
 		{
 			if (message.id == OBD_CAN_REPLY_ID &&
-				message.data[2] == OBD_PID_VEHICLE_SPEED)
+					message.data[2] == OBD_PID_VEHICLE_SPEED)
 			{
 				uint8_t newVehicleSpeedKmh = message.data[3];
 				updateMileage(newVehicleSpeedKmh);
@@ -326,7 +350,6 @@ double computeDeltaMileage(uint8_t newVehicleSpeedKmh)
  */
 void checkIntervalLimit()
 {
-	int RATE_LIMIT_DELAY_MS = 1000;
 	// over limit and connected
 	while ((data.intervalCounter >= data.intervalLimit) && Particle.connected())
 	{
@@ -341,19 +364,20 @@ void checkIntervalLimit()
 		char str[16];
 		ftoa(tcOffset, str, 2);
 		Particle.publish("Offset Carbon", str, PRIVATE);
-		delay(RATE_LIMIT_DELAY_MS);	// don't trip the rate limiter
+		delay(1500); // don't trip the rate limiter
 
-		// publish total amount offset
+		/* publish total amount offset
 		char str2[16];
 		ftoa(data.tonsOffset, str2, 2);
 		Particle.publish("Total Tons Carbon Offset", str2, PRIVATE);
-		delay(RATE_LIMIT_DELAY_MS);	// don't trip the rate limiter
+		delay(2000);	// don't trip the rate limiter
 
 		// publish total miles offset
 		char str3[16];
 		ftoa(data.intervalCounter, str3, 2);
 		Particle.publish("Total Miles Driven", str3, PRIVATE);
-		delay(RATE_LIMIT_DELAY_MS);	// don't trip the rate limiter
+		delay(2000);	// don't trip the rate limiter
+		*/
 
 		// decrement the counter by the limit we just offset
 		data.intervalCounter -= data.intervalLimit;
@@ -404,7 +428,7 @@ void saveToStorage()
  * Helper functions for converting doubles to string for publish() call
  * These are only here bc Wren API needs a "0."-prefixed double,
  * but Particle.publish() only gives strings
-*/
+ */
 
 /*
  * Reverses a string 'str' of length 'len'
@@ -423,9 +447,9 @@ void reverse(char *str, int len)
 }
 
 /*
- * Converts a given integer x to string str[]. 
- * d is the number of digits required in the output. 
- * If d is more than the number of digits in x, 
+ * Converts a given integer x to string str[].
+ * d is the number of digits required in the output.
+ * If d is more than the number of digits in x,
  * then 0s are added at the beginning.
  */
 int intToStr(int x, char str[], int d)
@@ -433,7 +457,7 @@ int intToStr(int x, char str[], int d)
 	int i = 0;
 
 	if (!x)
-		str[i++] = '0';	// If the int part is 0, make it explicit for Wren API
+		str[i++] = '0'; // If the int part is 0, make it explicit for Wren API
 
 	while (x)
 	{
@@ -458,10 +482,10 @@ int intToStr(int x, char str[], int d)
 void ftoa(float n, char *res, int afterpoint)
 {
 	// Extract integer part
-	int ipart = (int) n;
+	int ipart = (int)n;
 
 	// Extract floating part
-	float fpart = n - (float) ipart;
+	float fpart = n - (float)ipart;
 
 	// Convert integer part to string
 	int i = intToStr(ipart, res, 0);
@@ -469,13 +493,13 @@ void ftoa(float n, char *res, int afterpoint)
 	// Check for display option after point
 	if (afterpoint != 0)
 	{
-		res[i] = '.';	// add dot
+		res[i] = '.'; // add dot
 
 		// Get the value of fraction part upto given no.
-		// of points after dot. The third parameter 
+		// of points after dot. The third parameter
 		// is needed to handle cases like 233.007
 		fpart = fpart * pow(10, afterpoint);
 
-		intToStr((int) fpart, res + i + 1, afterpoint);
+		intToStr((int)fpart, res + i + 1, afterpoint);
 	}
 }
