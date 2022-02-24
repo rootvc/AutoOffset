@@ -88,7 +88,7 @@ const Data DEFAULT_DATA = {
 Data data;
 
 // Only store to EEPROM every so often
-const auto STORAGE_PERIOD = 60 * 1000; /*every minute */
+const auto STORAGE_PERIOD_MS = 60 * 1000; /* every minute */
 uint32_t lastStorageTime = 0;
 
 // OBD constants for CAN
