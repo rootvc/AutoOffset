@@ -51,6 +51,7 @@ void reverse(char *str, int len);
  * Elements must not be deleted.
  * To remove an element, replace the name with _unused1/2/3.
  * - e.g. intervalReached --> _unused1
+ * TODO-dev: [2022-02-21] Is the above example correct? If so, should we update the code to reflect that?
  * Elements must only be added at the end, and when elements are added,
  * version should be incremented.
  */
@@ -60,7 +61,9 @@ struct Data
 	uint16_t version;	// Increment in case more fields are added in a later version
 
 	double intervalCounter;	// The count of miles
+	// TODO-dev: [2022-02-21] Wonder if it'd be more self-descriptive if we called this milesCount?
 	double intervalLimit;	// The upper limit of miles to trigger a reminder
+	// TODO-dev: [2022-02-21] Wonder if it'd be more self-descriptive if we called this milesThreshold?
 	uint8_t intervalReached;	// (this isn't used anymore) Whether a reminder must be triggered next time the Carloop is online
 	double tonsOffset;	// total tons offset
 };
@@ -100,6 +103,7 @@ uint32_t lastStorageTime = 0;
 // CAN IDs for OBD messages
 const auto OBD_CAN_REQUEST_ID = 0x7E0;
 const auto OBD_CAN_REPLY_ID = 0x7E8;
+// TODO-dev: [2022-02-21] Are these IDs also from the reference link above? Didn't see them mentioned
 
 // Modes (aka services) for OBD
 const auto OBD_MODE_CURRENT_DATA = 0x01;
@@ -111,6 +115,7 @@ const auto OBD_PID_VEHICLE_SPEED = 0x0d;
 const auto OBD_TIMEOUT_MS = 20;
 
 // Track # of responses received
+// TODO-dev: [2022-02-21] Why do we need this?
 int obdResponseCount = 0;
 
 uint8_t vehicleSpeedKmh = 0;
