@@ -140,6 +140,9 @@ void setup()
 	data.intervalLimit = milesPerFractionTonCarbon;
 	saveToStorage();
 
+	// auto select antenna in case using external
+	STARTUP(WiFi.selectAntenna(ANT_AUTO));
+
 	// Configure the CAN bus speed for 500 kbps, the standard speed for the OBD-II port.
 	// Other common speeds are 250 kbps and 1 Mbps.
 	carloop.setCANSpeed(500000);
