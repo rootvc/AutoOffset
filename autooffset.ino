@@ -141,7 +141,7 @@ void setup()
 	saveToStorage();
 
 	// auto select antenna in case using external
-	STARTUP(WiFi.selectAntenna(ANT_AUTO));
+	// STARTUP(WiFi.selectAntenna(ANT_AUTO));
 
 	// Configure the CAN bus speed for 500 kbps, the standard speed for the OBD-II port.
 	// Other common speeds are 250 kbps and 1 Mbps.
@@ -230,7 +230,7 @@ void checkEngineRunning()
 	double batteryVoltage = carloop.battery();
 
 	// if battery voltage is below 12.75V car is off, sleep for 30s to save battery
-	// if it's below usbPowerVoltage limit, assume it's plugged into USB for diagnostics and don't sleep
+	// if it's also above usbPowerVoltage limit, assume it's plugged into USB for diagnostics and don't sleep
 	if (batteryVoltage < engineOnVoltage && batteryVoltage > usbPowerVoltage)
 	{
 		Particle.publish("STATUS", "Sleeping");
